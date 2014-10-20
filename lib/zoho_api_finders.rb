@@ -20,6 +20,24 @@ module ZohoApiFinders
     to_hash(x, module_name)
   end
 
+  def search_records_by_field(module_name, sc_field, values)
+    field = sc_field.rindex('id') ? sc_field.downcase : sc_field
+
+    preds = []
+    values.each do | v |
+      preds << '(' + field + ':' + v + ')'
+    end
+
+    search_condition = "(#{preds.join('OR')})"
+
+    puts "Search condition: #{search_condition}"
+    r = self.class.get(create_url("#{module_name}", 'searchRecords'),
+                       :query => { :authtoken => @auth_token, :scope => 'crmapi', :criteria => search_condition })
+    check_for_errors(r)
+    x = REXML::Document.new(r.body).elements.to_a("/response/result/#{module_name}/row")
+    to_hash(x, module_name)
+  end
+
   def find_record_by_id(module_name, id)
     r = self.class.get(create_url("#{module_name}", 'getRecordById'),
                        :query => { :newFormat => 1, :authtoken => @auth_token, :scope => 'crmapi',
