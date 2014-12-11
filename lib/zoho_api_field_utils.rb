@@ -57,7 +57,7 @@ module ZohoApiFieldUtils
     doc = REXML::Document.new(r.body)
     REXML::XPath.each(doc, "/#{module_name}/section/FL") do |ele|
       if (ele.attributes['type'].to_s.downcase == type.to_s.downcase)
-        fields <<   ApiUtils.string_to_symbol(ele.attributes['dv'].to_s)
+        fields <<  ele.attributes['dv'].to_s
       end
     end
     return fields
