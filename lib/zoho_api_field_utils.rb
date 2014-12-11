@@ -47,6 +47,24 @@ module ZohoApiFieldUtils
     update_module_fields(mod_name, module_name, r)
   end
 
+  def fields_from_api_of_type(module_name, type)
+    mod_name = ApiUtils.string_to_symbol(module_name)
+    r = self.class.post(create_url(module_name, 'getFields'),
+                        :query => { :authtoken => @auth_token, :scope => 'crmapi' },
+                        :headers => { 'Content-length' => '0' })
+    check_for_errors(r)
+    fields = []
+    doc = REXML::Document.new(r.body)
+    REXML::XPath.each(doc, "/#{module_name}/section/FL") do |ele|
+      if (ele.attributes['type'].to_s.downcase == type.to_s.downcase)
+        fields <<   ApiUtils.string_to_symbol(ele.attributes['dv'].to_s)
+      end
+    end
+    return fields
+  end
+
+
+
   def fields_from_record(module_name)
     mod_name = ApiUtils.string_to_symbol(module_name)
     return @@module_fields[mod_name] unless @@module_fields[mod_name].nil?
