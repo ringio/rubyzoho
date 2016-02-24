@@ -3,7 +3,11 @@ require 'rexml/document'
 module ApiUtils
 
   def self.camelize_with_space(str)
-    str.split('_').map {|w| w.capitalize}.join(' ')
+    if str == "entityId" # Had to make an exclusion. Otherwise was returning Entityid -- which zoho did not like for note create. Had to return pretty much as is.
+      return str
+    else
+      str.split('_').map {|w| w.capitalize}.join(' ')
+    end
   end
 
   def self.string_to_method_name(s)
