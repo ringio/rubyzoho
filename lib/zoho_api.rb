@@ -47,6 +47,26 @@ module ZohoApi
       to_hash(x_r, module_name)[0]
     end
 
+    # This does no manipulation of the keys passed in the hash to create new object.  
+    # Specifically Note creation needed the key "entityId" to be as is - but it was being converted to ENTITYID
+    # Zoho API was failing to create when ENTITYID was being passed.
+    def add_record_as_is(module_name, fields_values_hash)
+      x = REXML::Document.new
+      element = x.add_element module_name
+      row = element.add_element 'row', { 'no' => '1' }
+      fields_values_hash.each_pair { |k, v| add_field_as_is(row, k.to_s, v) }
+      r = self.class.post(create_url(module_name, 'insertRecords'),
+                          :query => { :newFormat => 1, :authtoken => @auth_token,
+                                      :scope => 'crmapi', :xmlData => x, :wfTrigger => 'true' },
+                          :headers => { 'Content-length' => '0' })
+      check_for_errors(r)
+      x_r = REXML::Document.new(r.body).elements.to_a('//recorddetail')
+      to_hash(x_r, module_name)[0]
+    end
+
+
+
+
     def attach_file(module_name, record_id, file_path, file_name)
       mime_type = (MIME::Types.type_for(file_path)[0] || MIME::Types['application/octet-stream'][0])
       url_path = create_url(module_name, "uploadFile?authtoken=#{@auth_token}&scope=crmapi&id=#{record_id}")

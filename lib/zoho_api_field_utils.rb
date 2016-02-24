@@ -12,6 +12,15 @@ module ZohoApiFieldUtils
     row
   end
 
+  def add_field_as_is(row, field, value)
+    r = (REXML::Element.new 'FL')
+    r.attributes['val'] = field
+    r.add_text("#{value}")
+    row.elements << r
+    row
+  end
+
+
   def adjust_tag_case(tag)
     return tag if tag == 'id'
     return tag.upcase if tag.downcase.rindex('id')
