@@ -38,6 +38,34 @@ module ZohoApiFinders
     to_hash(x, module_name)
   end
 
+
+  def search_records_by_multiple_fields(module_name, fv)
+    #fv - field_values is the searchcondition passed in.   For example : {"Name"=>"Scottie Pippen", "Email"=>"mike@bulls.com"}
+    #It will search for : ((Name:Scottie Pippen)AND(Email:mike@bulls.com))
+    # APi information - https://www.zoho.com/crm/help/api/searchrecords.html
+
+    search_condition =""
+    fv.each do |key,value| 
+      field = key.rindex('id') ? key.downcase : key
+      search_condition = search_condition + "(" + key + ":" + value + ")" + "AND"
+    end
+    search_condition = search_condition.chomp("AND")
+
+    #put outer brackets 
+    search_condition = '(' + search_condition + ')'
+    
+    puts "Search condition: #{search_condition}"
+    r = self.class.get(create_url("#{module_name}", 'searchRecords'),
+                       :query => { :authtoken => @auth_token, :scope => 'crmapi', :criteria => search_condition })
+    check_for_errors(r)
+    x = REXML::Document.new(r.body).elements.to_a("/response/result/#{module_name}/row")
+    to_hash(x, module_name)
+
+  end
+
+
+
+
   def find_record_by_id(module_name, id)
     r = self.class.get(create_url("#{module_name}", 'getRecordById'),
                        :query => { :newFormat => 1, :authtoken => @auth_token, :scope => 'crmapi',
