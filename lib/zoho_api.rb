@@ -197,6 +197,27 @@ module ZohoApi
       to_hash_with_id(x_r, module_name)[0]
     end
 
+
+    # This does no manipulation of the keys and values passed in the hash to update new object.  
+    # So no calemlcasing or :First_name converting to First Name.  WYSIWYG
+     def update_record_as_is(module_name, id, fields_values_hash)
+      x = REXML::Document.new
+      contacts = x.add_element module_name
+      row = contacts.add_element 'row', { 'no' => '1' }
+      fields_values_hash.each_pair { |k, v| add_field_as_is(row, ApiUtils.symbol_to_string(k), v) }
+      r = self.class.post(create_url(module_name, 'updateRecords'),
+                          :query => { :newFormat => 1, :authtoken => @auth_token,
+                                      :scope => 'crmapi', :id => id,
+                                      :xmlData => x, :wfTrigger => 'true' },
+                          :headers => { 'Content-length' => '0' })
+      check_for_errors(r)
+      x_r = REXML::Document.new(r.body).elements.to_a('//recorddetail')
+      to_hash_with_id(x_r, module_name)[0]
+    end
+
+
+
+
     def users(user_type = 'AllUsers')
       return @@users unless @@users == [] || user_type == 'Refresh'
       r = self.class.get(create_url('Users', 'getUsers'),
